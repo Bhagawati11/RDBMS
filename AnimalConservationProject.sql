@@ -371,4 +371,62 @@ ADD CONSTRAINT fk_tracking_volunteer
 FOREIGN KEY (VolunteerID) REFERENCES Volunteer(VolunteerID)  
 ON DELETE SET NULL;
 
+#- LEFT JOIN
+-- We want to retrieve a list of all Donors and the amount of money they donated. Some donors might not have made any donations, so we want to include them even if they haven't donated.
 
+SELECT
+    Donor.Name AS DonorName,
+    Donation.Amount AS DonationAmount
+FROM
+    Donor
+LEFT JOIN
+    Donation ON Donor.DonorID = Donation.DonorID;
+
+-- RIGHT JOIN
+-- List of the campaigns and their associated conservation projects, including campaigns that might not be linked to any project, using a RIGHT JOIN
+SELECT
+    Donation.DonationID,
+    Donation.Date AS DonationDate,
+    Donation.Amount,
+    Donor.Name AS DonorName,
+    Donor.Email AS DonorEmail
+FROM
+    Donation
+RIGHT JOIN
+    Donor
+ON
+    Donation.DonorID = Donor.DonorID;
+    
+SELECT
+    ConservationProject.Name AS ProjectName,
+    Researcher.Name AS ResearcherName,
+    Researcher.Specialization AS ResearcherSpecialization
+FROM
+    ConservationProject
+INNER JOIN
+    Researcher ON ConservationProject.ProjectID = Researcher.ProjectID;
+    
+-- GROUP BY
+-- animals there in each habitat, and the average age of animals in each habitat
+SELECT Habitat.Name AS HabitatName,
+       COUNT(Animal.AnimalID) AS NumberOfAnimals,
+       AVG(YEAR(CURDATE()) - YEAR(Animal.DateOfBirth)) AS AverageAge
+FROM Animal
+JOIN Habitat ON Animal.HabitatID = Habitat.HabitatID
+GROUP BY Habitat.HabitatID, Habitat.Name;
+
+#query  to calculate the number of animals and their average age for each habitat.
+SELECT 
+    Habitat.Name AS HabitatName,
+    (SELECT COUNT(*) FROM Animal WHERE Animal.HabitatID = Habitat.HabitatID) AS NumberOfAnimals,
+    (SELECT AVG(YEAR(CURDATE()) - YEAR(DateOfBirth)) FROM Animal WHERE Animal.HabitatID = Habitat.HabitatID) AS AverageAge
+FROM 
+    Habitat;
+    
+#query  to calculate the number of donations and the total amount donated for each project.
+SELECT 
+    ConservationProject.Name AS ProjectName,
+    (SELECT COUNT(*) FROM Donation WHERE Donation.ProjectID = ConservationProject.ProjectID) AS NumberOfDonations,
+    (SELECT SUM(Amount) FROM Donation WHERE Donation.ProjectID = ConservationProject.ProjectID) AS TotalAmountDonated
+FROM 
+    ConservationProject;
